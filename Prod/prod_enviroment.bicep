@@ -1,5 +1,10 @@
+var vnetName = 'vnet-prod'
+var subnetName = 'subnet-prod'
+var nicName = 'miner-001-nic'
+
+
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
-  name: 'Prod'
+  name: vnetName
   location: resourceGroup().location
   properties: {
     addressSpace: {
@@ -9,7 +14,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
     }
     subnets: [
       {
-        name: 'Prod'
+        name: subnetName
         properties: {
           addressPrefix: '10.0.0.0/24'
         }
@@ -18,9 +23,8 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
   }
 }
 
-
 resource networkInterface 'Microsoft.Network/networkInterfaces@2020-11-01' = {
-  name: 'miner-001'
+  name: nicName
   location: resourceGroup().location
   properties: {
     ipConfigurations: [
@@ -29,17 +33,19 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2020-11-01' = {
         properties: {
           privateIPAllocationMethod: 'Dynamic'
           subnet: {
-            id: virtualNetwork.id
+            id: resourceId('Microsoft.Network/virtualNetworks/subnets', vnetName, subnetName)
           }
         }
       }
     ]
   }
+  dependsOn: [
+    virtualNetwork
+  ]
 }
 
-
 resource windowsVM 'Microsoft.Compute/virtualMachines@2020-12-01' = {
-  name: 'miner-001'
+  name: 'miner-001-vm'
   location: resourceGroup().location
   properties: {
     hardwareProfile: {
